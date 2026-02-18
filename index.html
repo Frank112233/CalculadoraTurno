@@ -3,160 +3,287 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Diaconía La Paz — Calculadora de Turno</title>
+  <title>Turno La Paz — Calculadora (Móvil)</title>
   <style>
     :root{
-      --grid:#000;
-      --bg:#ffffff;
-      --header:#f3f3f3;
+      --moss:#3f5d3a;
+      --moss-2:#2f4a2b;
+      --ink:#0f172a;
+      --paper:#ffffff;
+      --bg:#f6f7f5;
+      --line:#d7ddcf;
+      --chip:#eef2ea;
       --btn:#4f79c7;
-      --btn-dark:#3f65ad;
-      --text:#111;
+      --btn2:#1f6d3a;
+      --shadow: 0 10px 24px rgba(0,0,0,.10);
+      --radius: 18px;
     }
+    *{ box-sizing:border-box; }
     body{
       margin:0;
-      padding:24px;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--text);
-      background:#fafafa;
-    }
-    .wrap{
-      max-width: 980px;
-      margin: 0 auto;
-      display:grid;
-      grid-template-columns: 1fr 260px;
-      gap: 24px;
-      align-items:start;
+      background: var(--bg);
+      color: var(--ink);
+      padding-bottom: 96px;
     }
 
-    .sheet{
-      background:var(--bg);
-      padding: 6px;
-      border: 2px solid var(--grid);
-      box-shadow: 0 8px 24px rgba(0,0,0,.08);
-    }
-    table{
-      width:100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-      font-size: 14px;
-    }
-    th, td{
-      border: 1px solid var(--grid);
-      padding: 8px 10px;
-      vertical-align: middle;
-    }
-    thead th{
-      background: var(--header);
-      font-weight: 700;
+    header{
+      padding: 18px 14px 10px;
       text-align:center;
     }
     .title{
-      font-weight: 800;
-      text-align:center;
-      background: #fff;
-      font-size: 15px;
+      margin:0;
+      font-size: clamp(20px, 4.5vw, 28px);
+      font-weight: 900;
+      color: var(--moss);
       letter-spacing:.2px;
     }
+    .subtitle{
+      margin: 6px 0 0;
+      font-size: 13px;
+      opacity: .8;
+    }
 
-    .col-cant{ width: 90px; text-align:center; }
-    .col-menu{ width: auto; }
-    .col-pu{ width: 120px; text-align:right; }
-    .col-total{ width: 140px; text-align:right; }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 10px 12px 20px;
+      display: grid;
+      gap: 12px;
+    }
 
-    .money{
+    .card{
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px 12px;
+    }
+    .row{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+    .row:last-child{ border-bottom:none; }
+
+    .topline{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .name{
+      font-weight: 800;
+      font-size: 15px;
+      line-height: 1.15;
+    }
+    .price{
+      font-weight: 800;
+      color: var(--moss-2);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+      background: var(--chip);
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+    }
+
+    .controls{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .stepper{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 8px;
+    }
+    .stepper button{
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 12px;
+      background: var(--btn2);
+      color:#fff;
+      font-size: 22px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .stepper button:active{ transform: translateY(1px); }
+    .qty{
+      width: 86px;
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      text-align:center;
+      font-size: 18px;
+      font-weight: 800;
+      outline:none;
+      background:#fff;
+    }
+    .qty:focus{
+      border-color: var(--btn2);
+      box-shadow: 0 0 0 4px rgba(31,109,58,.15);
+    }
+    .subtotal{
+      margin-left:auto;
+      font-weight: 900;
+      font-size: 16px;
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
     }
 
-    input.qty{
-      width: 100%;
-      box-sizing: border-box;
-      padding: 6px 8px;
-      border: 1px solid #999;
-      border-radius: 6px;
-      text-align: center;
-      font-size: 14px;
-      outline: none;
+    .bar{
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--line);
+      padding: 10px 12px;
+      z-index: 50;
     }
-    input.qty:focus{
-      border-color: #3f65ad;
-      box-shadow: 0 0 0 3px rgba(79,121,199,.2);
-    }
-
-    tfoot td{
-      font-weight: 800;
-      background:#fff;
-    }
-    .tfoot-label{
-      text-align:center;
-    }
-
-    .actions{
+    .bar-inner{
+      max-width: 980px;
+      margin: 0 auto;
       display:flex;
-      justify-content:center;
-      align-items:flex-start;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
     }
-    button{
-      width: 220px;
-      height: 74px;
-      border: none;
-      border-radius: 14px;
-      background: var(--btn);
-      color: #fff;
-      font-size: 34px;
+    .grand{
+      display:flex;
+      flex-direction:column;
+      gap: 2px;
+    }
+    .grand small{
+      opacity:.7;
       font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 10px 18px rgba(0,0,0,.18);
+      letter-spacing:.2px;
     }
-    button:hover{ background: var(--btn-dark); }
-    button:active{ transform: translateY(1px); }
-
-    .hint{
-      margin-top: 10px;
-      font-size: 12px;
-      opacity: .75;
-      text-align:center;
+    .grand b{
+      font-size: 22px;
+      color: var(--moss);
+      font-variant-numeric: tabular-nums;
     }
+    .bar-actions{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+    }
+    .clear{
+      border:none;
+      background: var(--btn);
+      color:#fff;
+      font-weight: 900;
+      font-size: 16px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      cursor:pointer;
+      box-shadow: 0 10px 18px rgba(0,0,0,.16);
+    }
+    .clear:hover{ filter: brightness(.97); }
+    .clear:active{ transform: translateY(1px); }
 
-    @media (max-width: 860px){
-      .wrap{ grid-template-columns: 1fr; }
-      .actions{ justify-content:flex-end; }
-      button{ width: 100%; }
+    .tableWrap{ display:none; }
+    @media (min-width: 880px){
+      body{ padding-bottom: 0; }
+      .bar{ position: sticky; bottom: auto; top: 0; border-top: none; border-bottom: 1px solid var(--line); }
+      .wrap{ grid-template-columns: 1.1fr .9fr; align-items:start; }
+      .tableWrap{ display:block; }
+      .mobileWrap{ display:none; }
+
+      table{
+        width:100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      th, td{
+        border: 1px solid #000;
+        padding: 8px 10px;
+      }
+      thead th{
+        background: #f3f3f3;
+        text-align:center;
+      }
+      .titleRow{
+        font-weight: 900;
+        text-align:center;
+        background:#fff;
+      }
+      .tqty input{
+        width: 70px;
+        height: 36px;
+        text-align:center;
+        font-weight: 800;
+        border-radius: 10px;
+      }
+      .money{ text-align:right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     }
   </style>
 </head>
 <body>
+  <header>
+    <h1 class="title">Diaconía La Paz — Turno</h1>
+    <div class="subtitle">Escribí cantidades o usá + / −. Todo se calcula solo.</div>
+  </header>
+
+  <div class="bar" role="region" aria-label="Total y acciones">
+    <div class="bar-inner">
+      <div class="grand">
+        <small>TOTAL</small>
+        <b id="grandTotal">₡ 0</b>
+      </div>
+      <div class="bar-actions">
+        <button id="btnClear" class="clear" type="button">Limpiar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="wrap">
-    <div class="sheet">
-      <table id="menuTable" aria-label="Diaconía La Paz - Calculadora de Turno">
+    <div class="mobileWrap card" id="mobileList" aria-label="Menú móvil"></div>
+
+    <div class="tableWrap card">
+      <table aria-label="Menú tabla">
         <thead>
+          <tr><th class="titleRow" colspan="4">Diaconía La Paz</th></tr>
           <tr>
-            <th class="title" colspan="4">Diaconía La Paz</th>
-          </tr>
-          <tr>
-            <th class="col-cant">CANT</th>
-            <th class="col-menu">Menú</th>
-            <th class="col-pu">P/U</th>
-            <th class="col-total">TOTAL</th>
+            <th style="width:90px;">CANT</th>
+            <th>Menú</th>
+            <th style="width:120px;">P/U</th>
+            <th style="width:140px;">TOTAL</th>
           </tr>
         </thead>
-
-        <tbody id="rows"></tbody>
-
+        <tbody id="tableRows"></tbody>
         <tfoot>
           <tr>
-            <td class="tfoot-label" colspan="3">TOTAL</td>
-            <td id="grandTotal" class="money col-total">₡ 0</td>
+            <td colspan="3" style="text-align:center;font-weight:900;">TOTAL</td>
+            <td id="grandTotal2" class="money" style="font-weight:900;">₡ 0</td>
           </tr>
         </tfoot>
       </table>
     </div>
 
-    <div class="actions">
-      <div>
-        <button id="btnClear" type="button">Limpiar</button>
-        <div class="hint">Tip: escribí cantidades y el total se calcula solo.</div>
+    <div class="card" aria-label="Ayuda">
+      <div style="font-weight:900;color:var(--moss);margin-bottom:6px;">Consejos rápidos</div>
+      <ul style="margin:0;padding-left:18px;line-height:1.55;">
+        <li>En el celular, usá los botones <b>+ / −</b> para ir rápido.</li>
+        <li>Si escribís, el teclado numérico sale por defecto.</li>
+        <li>El botón <b>Limpiar</b> reinicia todo para el próximo cliente.</li>
+      </ul>
+      <div style="margin-top:10px;font-size:12px;opacity:.75;">
+        Precios en colones (₡). Se redondea a enteros (no decimales).
       </div>
     </div>
   </div>
@@ -186,77 +313,123 @@
       maximumFractionDigits: 0
     });
 
-    const tbody = document.getElementById("rows");
+    const qty = items.map(() => 0);
+
+    const mobileList = document.getElementById("mobileList");
+    const tableRows = document.getElementById("tableRows");
     const grandTotalEl = document.getElementById("grandTotal");
+    const grandTotalEl2 = document.getElementById("grandTotal2");
     const btnClear = document.getElementById("btnClear");
 
-    function clampQty(val){
-      if (val === "" || val === null || val === undefined) return 0;
-      const n = Number(val);
+    function clampInt(n){
       if (!Number.isFinite(n) || n < 0) return 0;
       return Math.floor(n);
     }
 
-    function render(){
-      tbody.innerHTML = "";
-      items.forEach((it, idx) => {
+    function renderMobile(){
+      mobileList.innerHTML = "";
+      items.forEach((it, i) => {
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = `
+          <div class="topline">
+            <div class="name">${it.name}</div>
+            <div class="price">${moneyFmt.format(it.price)}</div>
+          </div>
+          <div class="controls">
+            <div class="stepper" role="group" aria-label="Cantidad ${it.name}">
+              <button type="button" data-act="dec" data-i="${i}" aria-label="Disminuir">−</button>
+              <input class="qty" type="number" min="0" step="1" inputmode="numeric" pattern="[0-9]*"
+                     data-i="${i}" value="${qty[i]}" aria-label="Cantidad" />
+              <button type="button" data-act="inc" data-i="${i}" aria-label="Aumentar">+</button>
+            </div>
+            <div class="subtotal" id="sub-${i}">${moneyFmt.format(qty[i] * it.price)}</div>
+          </div>
+        `;
+        mobileList.appendChild(row);
+      });
+    }
+
+    function renderTable(){
+      tableRows.innerHTML = "";
+      items.forEach((it, i) => {
         const tr = document.createElement("tr");
-
-        const tdQty = document.createElement("td");
-        tdQty.className = "col-cant";
-        const input = document.createElement("input");
-        input.className = "qty";
-        input.type = "number";
-        input.min = "0";
-        input.step = "1";
-        input.setAttribute("inputmode","numeric");
-        input.dataset.index = String(idx);
-        tdQty.appendChild(input);
-
-        const tdName = document.createElement("td");
-        tdName.className = "col-menu";
-        tdName.textContent = it.name;
-
-        const tdPU = document.createElement("td");
-        tdPU.className = "col-pu money";
-        tdPU.textContent = moneyFmt.format(it.price);
-
-        const tdTotal = document.createElement("td");
-        tdTotal.className = "col-total money";
-        tdTotal.id = `rowTotal-${idx}`;
-        tdTotal.textContent = moneyFmt.format(0);
-
-        tr.appendChild(tdQty);
-        tr.appendChild(tdName);
-        tr.appendChild(tdPU);
-        tr.appendChild(tdTotal);
-        tbody.appendChild(tr);
+        tr.innerHTML = `
+          <td class="tqty" style="text-align:center;">
+            <input type="number" min="0" step="1" inputmode="numeric" class="qtyTable" data-i="${i}" value="${qty[i]}">
+          </td>
+          <td>${it.name}</td>
+          <td class="money">${moneyFmt.format(it.price)}</td>
+          <td class="money" id="tsub-${i}">${moneyFmt.format(qty[i] * it.price)}</td>
+        `;
+        tableRows.appendChild(tr);
       });
     }
 
     function recalc(){
       let grand = 0;
-      document.querySelectorAll("input.qty").forEach(inp => {
-        const idx = Number(inp.dataset.index);
-        const qty = clampQty(inp.value);
-        if (inp.value !== "" && String(qty) !== inp.value) inp.value = String(qty);
-        const rowTotal = qty * items[idx].price;
-        grand += rowTotal;
-        document.getElementById(`rowTotal-${idx}`).textContent = moneyFmt.format(rowTotal);
+      items.forEach((it, i) => {
+        const sub = qty[i] * it.price;
+        grand += sub;
+
+        const subEl = document.getElementById(`sub-${i}`);
+        if (subEl) subEl.textContent = moneyFmt.format(sub);
+
+        const tsubEl = document.getElementById(`tsub-${i}`);
+        if (tsubEl) tsubEl.textContent = moneyFmt.format(sub);
       });
+
       grandTotalEl.textContent = moneyFmt.format(grand);
+      if (grandTotalEl2) grandTotalEl2.textContent = moneyFmt.format(grand);
+    }
+
+    function syncInputs(){
+      document.querySelectorAll("input.qty").forEach(inp => {
+        const i = Number(inp.dataset.i);
+        inp.value = String(qty[i]);
+      });
+      document.querySelectorAll("input.qtyTable").forEach(inp => {
+        const i = Number(inp.dataset.i);
+        inp.value = String(qty[i]);
+      });
     }
 
     function clearAll(){
-      document.querySelectorAll("input.qty").forEach(inp => inp.value = "");
+      for (let i=0;i<qty.length;i++) qty[i]=0;
+      syncInputs();
       recalc();
     }
 
-    render();
+    renderMobile();
+    renderTable();
     recalc();
 
-    tbody.addEventListener("input", (e) => {
-      if (e.target && e.target.classList.contains("qty")) recalc();
+    mobileList.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-act]");
+      if (!btn) return;
+      const i = Number(btn.dataset.i);
+      const act = btn.dataset.act;
+      qty[i] = clampInt(qty[i] + (act === "inc" ? 1 : -1));
+      syncInputs();
+      recalc();
+    });
+
+    mobileList.addEventListener("input", (e) => {
+      const inp = e.target.closest("input.qty");
+      if (!inp) return;
+      const i = Number(inp.dataset.i);
+      qty[i] = clampInt(Number(inp.value));
+      syncInputs();
+      recalc();
+    });
+
+    tableRows.addEventListener("input", (e) => {
+      const inp = e.target.closest("input.qtyTable");
+      if (!inp) return;
+      const i = Number(inp.dataset.i);
+      qty[i] = clampInt(Number(inp.value));
+      syncInputs();
+      recalc();
     });
 
     btnClear.addEventListener("click", clearAll);
