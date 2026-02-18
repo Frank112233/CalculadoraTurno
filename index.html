@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Diaconía La Paz — Calculadora de Turno</title>
+  <style>
+    :root{
+      --grid:#000;
+      --bg:#ffffff;
+      --header:#f3f3f3;
+      --btn:#4f79c7;
+      --btn-dark:#3f65ad;
+      --text:#111;
+    }
+    body{
+      margin:0;
+      padding:24px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background:#fafafa;
+    }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      display:grid;
+      grid-template-columns: 1fr 260px;
+      gap: 24px;
+      align-items:start;
+    }
+
+    .sheet{
+      background:var(--bg);
+      padding: 6px;
+      border: 2px solid var(--grid);
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 14px;
+    }
+    th, td{
+      border: 1px solid var(--grid);
+      padding: 8px 10px;
+      vertical-align: middle;
+    }
+    thead th{
+      background: var(--header);
+      font-weight: 700;
+      text-align:center;
+    }
+    .title{
+      font-weight: 800;
+      text-align:center;
+      background: #fff;
+      font-size: 15px;
+      letter-spacing:.2px;
+    }
+
+    .col-cant{ width: 90px; text-align:center; }
+    .col-menu{ width: auto; }
+    .col-pu{ width: 120px; text-align:right; }
+    .col-total{ width: 140px; text-align:right; }
+
+    .money{
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    input.qty{
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px 8px;
+      border: 1px solid #999;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 14px;
+      outline: none;
+    }
+    input.qty:focus{
+      border-color: #3f65ad;
+      box-shadow: 0 0 0 3px rgba(79,121,199,.2);
+    }
+
+    tfoot td{
+      font-weight: 800;
+      background:#fff;
+    }
+    .tfoot-label{
+      text-align:center;
+    }
+
+    .actions{
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+    }
+    button{
+      width: 220px;
+      height: 74px;
+      border: none;
+      border-radius: 14px;
+      background: var(--btn);
+      color: #fff;
+      font-size: 34px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 18px rgba(0,0,0,.18);
+    }
+    button:hover{ background: var(--btn-dark); }
+    button:active{ transform: translateY(1px); }
+
+    .hint{
+      margin-top: 10px;
+      font-size: 12px;
+      opacity: .75;
+      text-align:center;
+    }
+
+    @media (max-width: 860px){
+      .wrap{ grid-template-columns: 1fr; }
+      .actions{ justify-content:flex-end; }
+      button{ width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="sheet">
+      <table id="menuTable" aria-label="Diaconía La Paz - Calculadora de Turno">
+        <thead>
+          <tr>
+            <th class="title" colspan="4">Diaconía La Paz</th>
+          </tr>
+          <tr>
+            <th class="col-cant">CANT</th>
+            <th class="col-menu">Menú</th>
+            <th class="col-pu">P/U</th>
+            <th class="col-total">TOTAL</th>
+          </tr>
+        </thead>
+
+        <tbody id="rows"></tbody>
+
+        <tfoot>
+          <tr>
+            <td class="tfoot-label" colspan="3">TOTAL</td>
+            <td id="grandTotal" class="money col-total">₡ 0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="actions">
+      <div>
+        <button id="btnClear" type="button">Limpiar</button>
+        <div class="hint">Tip: escribí cantidades y el total se calcula solo.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const items = [
+      { name: "Arroz con Carne en Salsa", price: 3000 },
+      { name: "Bolsa de Picadillo",       price: 2500 },
+      { name: "Vigorón",                  price: 3000 },
+      { name: "Frito",                    price: 2500 },
+      { name: "Sopa de Mondongo",         price: 3000 },
+      { name: "Lomo Relleno",             price: 2500 },
+      { name: "Gallo de Picadillo",       price: 2000 },
+      { name: "Piña de Tamales",          price: 1300 },
+      { name: "Tamal",                    price: 700  },
+      { name: "Café Negro",               price: 700  },
+      { name: "Café con Leche",           price: 800  },
+      { name: "Aguadulce",                price: 500  },
+      { name: "Fresco de Frutas",         price: 700  },
+      { name: "Gaseosas / Tropicales",    price: 700  },
+      { name: "*para llevar",             price: 200  }
+    ];
+
+    const moneyFmt = new Intl.NumberFormat("es-CR", {
+      style: "currency",
+      currency: "CRC",
+      maximumFractionDigits: 0
+    });
+
+    const tbody = document.getElementById("rows");
+    const grandTotalEl = document.getElementById("grandTotal");
+    const btnClear = document.getElementById("btnClear");
+
+    function clampQty(val){
+      if (val === "" || val === null || val === undefined) return 0;
+      const n = Number(val);
+      if (!Number.isFinite(n) || n < 0) return 0;
+      return Math.floor(n);
+    }
+
+    function render(){
+      tbody.innerHTML = "";
+      items.forEach((it, idx) => {
+        const tr = document.createElement("tr");
+
+        const tdQty = document.createElement("td");
+        tdQty.className = "col-cant";
+        const input = document.createElement("input");
+        input.className = "qty";
+        input.type = "number";
+        input.min = "0";
+        input.step = "1";
+        input.setAttribute("inputmode","numeric");
+        input.dataset.index = String(idx);
+        tdQty.appendChild(input);
+
+        const tdName = document.createElement("td");
+        tdName.className = "col-menu";
+        tdName.textContent = it.name;
+
+        const tdPU = document.createElement("td");
+        tdPU.className = "col-pu money";
+        tdPU.textContent = moneyFmt.format(it.price);
+
+        const tdTotal = document.createElement("td");
+        tdTotal.className = "col-total money";
+        tdTotal.id = `rowTotal-${idx}`;
+        tdTotal.textContent = moneyFmt.format(0);
+
+        tr.appendChild(tdQty);
+        tr.appendChild(tdName);
+        tr.appendChild(tdPU);
+        tr.appendChild(tdTotal);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function recalc(){
+      let grand = 0;
+      document.querySelectorAll("input.qty").forEach(inp => {
+        const idx = Number(inp.dataset.index);
+        const qty = clampQty(inp.value);
+        if (inp.value !== "" && String(qty) !== inp.value) inp.value = String(qty);
+        const rowTotal = qty * items[idx].price;
+        grand += rowTotal;
+        document.getElementById(`rowTotal-${idx}`).textContent = moneyFmt.format(rowTotal);
+      });
+      grandTotalEl.textContent = moneyFmt.format(grand);
+    }
+
+    function clearAll(){
+      document.querySelectorAll("input.qty").forEach(inp => inp.value = "");
+      recalc();
+    }
+
+    render();
+    recalc();
+
+    tbody.addEventListener("input", (e) => {
+      if (e.target && e.target.classList.contains("qty")) recalc();
+    });
+
+    btnClear.addEventListener("click", clearAll);
+  </script>
+</body>
+</html>
