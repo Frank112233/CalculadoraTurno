@@ -15,6 +15,7 @@
       --chip:#eef2ea;
       --btn:#4f79c7;
       --btn2:#1f6d3a;
+      --danger:#b42318;
       --shadow: 0 10px 24px rgba(0,0,0,.10);
       --radius: 18px;
     }
@@ -24,7 +25,7 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background: var(--bg);
       color: var(--ink);
-      padding-bottom: 96px;
+      padding-bottom: 190px;
     }
 
     header{
@@ -157,6 +158,11 @@
     .bar-inner{
       max-width: 980px;
       margin: 0 auto;
+      display:grid;
+      gap: 10px;
+    }
+
+    .topBar{
       display:flex;
       align-items:center;
       justify-content:space-between;
@@ -177,11 +183,7 @@
       color: var(--moss);
       font-variant-numeric: tabular-nums;
     }
-    .bar-actions{
-      display:flex;
-      gap: 10px;
-      align-items:center;
-    }
+
     .clear{
       border:none;
       background: var(--btn);
@@ -192,9 +194,62 @@
       border-radius: 14px;
       cursor:pointer;
       box-shadow: 0 10px 18px rgba(0,0,0,.16);
+      white-space: nowrap;
     }
     .clear:hover{ filter: brightness(.97); }
     .clear:active{ transform: translateY(1px); }
+
+    .payGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-items:stretch;
+    }
+    .payBox{
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 10px;
+      background: #fff;
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      min-height: 74px;
+    }
+    .payBox label{
+      font-size: 12px;
+      font-weight: 800;
+      opacity: .75;
+      letter-spacing:.2px;
+      text-transform: uppercase;
+    }
+    .payInput{
+      width: 100%;
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0 12px;
+      font-size: 18px;
+      font-weight: 900;
+      outline:none;
+      font-variant-numeric: tabular-nums;
+    }
+    .payInput:focus{
+      border-color: var(--btn2);
+      box-shadow: 0 0 0 4px rgba(31,109,58,.15);
+    }
+    .payValue{
+      font-size: 18px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      color: var(--moss-2);
+      white-space: nowrap;
+    }
+    .warn{ color: var(--danger); }
+    .hint{
+      font-size: 12px;
+      opacity: .75;
+      margin-top: -2px;
+    }
 
     .tableWrap{ display:none; }
     @media (min-width: 880px){
@@ -231,22 +286,41 @@
       }
       .money{ text-align:right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     }
+
+    @media (max-width: 420px){
+      .payGrid{ grid-template-columns: 1fr; }
+      body{ padding-bottom: 250px; }
+    }
   </style>
 </head>
 <body>
   <header>
     <h1 class="title">Diaconía La Paz — Turno</h1>
-    <div class="subtitle">Escribí cantidades o usá + / −. Todo se calcula solo.</div>
+    <div class="subtitle">Escribí cantidades o usá + / −. Abajo ponés con cuánto pagan y te calcula el vuelto.</div>
   </header>
 
-  <div class="bar" role="region" aria-label="Total y acciones">
+  <div class="bar" role="region" aria-label="Total, pago y vuelto">
     <div class="bar-inner">
-      <div class="grand">
-        <small>TOTAL</small>
-        <b id="grandTotal">₡ 0</b>
-      </div>
-      <div class="bar-actions">
+      <div class="topBar">
+        <div class="grand">
+          <small>TOTAL</small>
+          <b id="grandTotal">₡ 0</b>
+        </div>
         <button id="btnClear" class="clear" type="button">Limpiar</button>
+      </div>
+
+      <div class="payGrid" aria-label="Pago y vuelto">
+        <div class="payBox">
+          <label for="paidInput">Me pagan con</label>
+          <input id="paidInput" class="payInput" type="number" min="0" step="1" inputmode="numeric" pattern="[0-9]*" placeholder="Ej: 5000" />
+          <div class="hint">Solo enteros (colones).</div>
+        </div>
+
+        <div class="payBox">
+          <label>Vuelto</label>
+          <div id="changeValue" class="payValue">₡ 0</div>
+          <div id="changeHint" class="hint">Escribí el monto con el que pagan.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -279,7 +353,8 @@
       <div style="font-weight:900;color:var(--moss);margin-bottom:6px;">Consejos rápidos</div>
       <ul style="margin:0;padding-left:18px;line-height:1.55;">
         <li>En el celular, usá los botones <b>+ / −</b> para ir rápido.</li>
-        <li>Si escribís, el teclado numérico sale por defecto.</li>
+        <li>En <b>Me pagan con</b>, poné el monto y te sale el <b>Vuelto</b>.</li>
+        <li>Si el pago es menor que el total, te muestra cuánto <b>falta</b>.</li>
         <li>El botón <b>Limpiar</b> reinicia todo para el próximo cliente.</li>
       </ul>
       <div style="margin-top:10px;font-size:12px;opacity:.75;">
@@ -319,7 +394,14 @@
     const tableRows = document.getElementById("tableRows");
     const grandTotalEl = document.getElementById("grandTotal");
     const grandTotalEl2 = document.getElementById("grandTotal2");
+
+    const paidInput = document.getElementById("paidInput");
+    const changeValue = document.getElementById("changeValue");
+    const changeHint  = document.getElementById("changeHint");
+
     const btnClear = document.getElementById("btnClear");
+
+    let lastGrand = 0;
 
     function clampInt(n){
       if (!Number.isFinite(n) || n < 0) return 0;
@@ -366,6 +448,29 @@
       });
     }
 
+    function recalcChange(grand){
+      const paid = clampInt(Number(paidInput.value));
+      if (paidInput.value !== "" && String(paid) !== paidInput.value) paidInput.value = String(paid);
+
+      if (paidInput.value === ""){
+        changeValue.classList.remove("warn");
+        changeValue.textContent = moneyFmt.format(0);
+        changeHint.textContent = "Escribí el monto con el que pagan.";
+        return;
+      }
+
+      const diff = paid - grand;
+      if (diff >= 0){
+        changeValue.classList.remove("warn");
+        changeValue.textContent = moneyFmt.format(diff);
+        changeHint.textContent = diff === 0 ? "Exacto (sin vuelto)." : "Vuelto a entregar.";
+      } else {
+        changeValue.classList.add("warn");
+        changeValue.textContent = moneyFmt.format(Math.abs(diff));
+        changeHint.textContent = "Falta dinero.";
+      }
+    }
+
     function recalc(){
       let grand = 0;
       items.forEach((it, i) => {
@@ -379,8 +484,12 @@
         if (tsubEl) tsubEl.textContent = moneyFmt.format(sub);
       });
 
+      lastGrand = grand;
+
       grandTotalEl.textContent = moneyFmt.format(grand);
       if (grandTotalEl2) grandTotalEl2.textContent = moneyFmt.format(grand);
+
+      recalcChange(grand);
     }
 
     function syncInputs(){
@@ -396,6 +505,7 @@
 
     function clearAll(){
       for (let i=0;i<qty.length;i++) qty[i]=0;
+      paidInput.value = "";
       syncInputs();
       recalc();
     }
@@ -431,6 +541,8 @@
       syncInputs();
       recalc();
     });
+
+    paidInput.addEventListener("input", () => recalcChange(lastGrand));
 
     btnClear.addEventListener("click", clearAll);
   </script>
